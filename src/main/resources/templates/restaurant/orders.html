@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Заказы ресторана</title>
+</head>
+<body>
+<h1>Заказы вашего ресторана</h1>
+<table>
+    <thead>
+    <tr>
+        <th>Номер заказа</th>
+        <th>Клиент</th>
+        <th>Дата создания</th>
+        <th>Статус</th>
+        <th>Сумма</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="order : ${orders}">
+        <td th:text="${order.id}"></td>
+        <td th:text="${order.user.username}"></td>
+        <td th:text="${#temporals.format(order.createdAt, 'yyyy-MM-dd HH:mm')}"></td>
+        <td th:text="${order.status}"></td>
+        <td th:text="${order.totalAmount}"></td>
+    </tr>
+    </tbody>
+</table>
+</body>
+</html>

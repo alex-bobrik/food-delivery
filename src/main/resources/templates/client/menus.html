@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Меню</title>
+</head>
+<body>
+<h1>Список меню</h1>
+
+<table border="1">
+    <thead>
+    <tr>
+        <th>Название</th>
+        <th>Описание</th>
+        <th>Цена</th>
+        <th>Ресторан</th>
+        <th>Действие</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="menu : ${menus}">
+        <td th:text="${menu.name}"></td>
+        <td th:text="${menu.description}"></td>
+        <td th:text="${menu.price} + ' ₽'"></td>
+        <td th:text="${menu.restaurant.name}"></td>
+        <td>
+            <a th:href="@{/client/order(menuId=${menu.id})}">
+                Заказать
+            </a>
+        </td>
+    </tr>
+    </tbody>
+</table>
+</body>
+</html>

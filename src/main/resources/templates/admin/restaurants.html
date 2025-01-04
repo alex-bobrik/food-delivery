@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Рестораны</title>
+
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+
+</head>
+<body>
+<h1>Все рестораны</h1>
+
+<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModal"
+        onclick="fillModal(null, '', '', '')">
+    Новый ресторан..
+</button>
+
+
+
+<table>
+    <thead>
+    <tr>
+        <th>Название</th>
+        <th>Адрес</th>
+        <th>Контактная информация</th>
+        <th>Действия</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="restaurant : ${restaurants}">
+        <td th:text="${restaurant.name}"></td>
+        <td th:text="${restaurant.address}"></td>
+        <td th:text="${restaurant.contactInfo}"></td>
+        <td>
+            <!-- Кнопка для редактирования -->
+            <button type="button" class="btn btn-warning" data-toggle="modal" data-target="#exampleModal"
+                    th:attr="data-id=${restaurant.id}, data-name=${restaurant.name}, data-address=${restaurant.address}, data-contact=${restaurant.contactInfo}">
+                Редактировать
+            </button>
+
+            <!-- Кнопка для перехода на страницу меню -->
+            <a th:href="@{/admin/restaurants/{id}/menus(id=${restaurant.id})}" class="btn btn-info">
+                Посмотреть меню
+            </a>
+        </td>
+    </tr>
+    </tbody>
+</table>
+
+
+
+<!-- Update restaurant modal -->
+<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form th:action="@{/admin/restaurants/save}" method="post">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Управление рестораном</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div id="account-fields" style="display: none;">
+                        <h5>Аккаунт ресторана</h5>
+                        <div class="form-group">
+                            <label>
+                                Username
+                                <input type="text" class="form-control" name="username" />
+                            </label>
+                            <label>
+                                Password
+                                <input type="password" class="form-control" name="password" />
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Ресторан -->
+                    <h5>Ресторан</h5>
+                    <div class="form-group">
+                        <label>
+                            Название
+                            <input type="text" class="form-control" name="restaurant_name" required />
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            Адрес
+                            <input type="text" class="form-control" name="restaurant_address" required />
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            Контактная информация
+                            <textarea rows="3" class="form-control" name="restaurant_contact" required></textarea>
+                        </label>
+                    </div>
+
+                    <!-- Скрытое поле для ID ресторана -->
+                    <input type="hidden" name="restaurant_id" id="update_restaurant_id" />
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Закрыть</button>
+                    <button type="submit" class="btn btn-primary">Сохранить изменения</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    document.querySelectorAll(".btn-warning").forEach(function (button) {
+        button.addEventListener("click", function () {
+            const id = this.getAttribute("data-id");
+            const name = this.getAttribute("data-name");
+            const address = this.getAttribute("data-address");
+            const contact = this.getAttribute("data-contact");
+
+            fillModal(id, name, address, contact);
+        });
+    });
+});
+
+function fillModal(id, name, address, contact) {
+    const isNew = !id; // Если id пустой, значит создается новый ресторан
+    document.getElementById("update_restaurant_id").value = id || ""; // Устанавливаем ID
+    document.querySelector("input[name='restaurant_name']").value = name || "";
+    document.querySelector("input[name='restaurant_address']").value = address || "";
+    document.querySelector("textarea[name='restaurant_contact']").value = contact || "";
+
+    // Управляем отображением полей для username и password
+    const accountFields = document.getElementById("account-fields");
+    if (isNew) {
+        accountFields.style.display = "block"; // Показываем поля
+        document.querySelector("input[name='username']").value = ""; // Очищаем значение
+        document.querySelector("input[name='password']").value = ""; // Очищаем значение
+        document.querySelector("input[name='username']").required = true;
+        document.querySelector("input[name='password']").required = true;
+    } else {
+        accountFields.style.display = "none"; // Скрываем поля
+        document.querySelector("input[name='username']").required = false;
+        document.querySelector("input[name='password']").required = false;
+    }
+}
+
+
+</script>
+
+
+<!--Bootstrap -->
+<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+
+</body>
+</html>

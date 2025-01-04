@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Мои заказы</title>
+</head>
+<body>
+<h1>Мои заказы</h1>
+
+<table border="1">
+  <thead>
+  <tr>
+    <th>Дата заказа</th>
+    <th>Ресторан</th>
+    <th>Статус</th>
+    <th>Итоговая цена</th>
+    <th>Блюда</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr th:each="order : ${orders}">
+    <td th:text="${#temporals.format(order.createdAt, 'dd-MM-yyyy HH:mm')}"></td>
+    <td th:text="${order.restaurant?.name ?: '-'}"></td>
+    <td th:text="${order.status}"></td>
+    <td th:text="${order.totalAmount} + ' ₽'"></td>
+    <td>
+      <ul>
+        <li th:each="item : ${order.orderItems}" th:text="${item.menuItem.name}"></li>
+      </ul>
+    </td>
+  </tr>
+  </tbody>
+</table>
+</body>
+</html>
