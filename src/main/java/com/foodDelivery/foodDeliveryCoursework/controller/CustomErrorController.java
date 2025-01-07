@@ -18,10 +18,13 @@ public class CustomErrorController implements ErrorController {
             int statusCode = Integer.parseInt(status.toString());
 
             if (statusCode == 404) {
-                return "error/404"; // Путь к вашему шаблону
+                return "error/404"; // Путь к шаблону 404
+            } else if (statusCode == 403) {
+                return "error/403"; // Путь к шаблону 403
             }
         }
 
         return "error/default"; // Шаблон для других ошибок
     }
 }
+

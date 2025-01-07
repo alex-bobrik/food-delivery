@@ -31,6 +31,7 @@ public class SecurityConfig {
                         .ignoringRequestMatchers("/h2-console/**") // Отключаем CSRF для H2 Console
                 )
                 .authorizeHttpRequests(auth -> auth
+                        // Доступ для всех к перечисленным URL
                         .requestMatchers(
                                 "/h2-console/**",
                                 "/auth/login",
@@ -39,6 +40,12 @@ public class SecurityConfig {
                                 "/js/**",
                                 "/uploads/*"
                         ).permitAll()
+                        // Разграничение ролей
+                        .requestMatchers("/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/restaurant/**").hasRole("RESTAURANT")
+                        .requestMatchers("/client/**").hasRole("CLIENT")
+                        .requestMatchers("/courier/**").hasRole("COURIER")
+                        // Все остальные запросы требуют аутентификации
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form
@@ -47,12 +54,18 @@ public class SecurityConfig {
                         .successHandler(new CustomAuthenticationSuccessHandler()) // Кастомная логика успешного логина
                         .failureUrl("/auth/login?error=true")
                 )
+                .logout(logout -> logout
+                        .logoutUrl("/auth/logout") // URL для выхода
+                        .logoutSuccessUrl("/auth/login?logout") // Перенаправление после выхода
+                        .permitAll()
+                )
                 .headers(headers -> headers
                         .frameOptions().sameOrigin() // Разрешаем использование iframe с той же страницы
                 );
 
         return http.build();
     }
+
 
     @Bean
     public PasswordEncoder passwordEncoder() {
