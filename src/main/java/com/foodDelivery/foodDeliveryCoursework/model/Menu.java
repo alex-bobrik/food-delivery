@@ -19,6 +19,8 @@ public class Menu {
     private String description;
     private BigDecimal price;
 
+    private String imageUrl;
+
     // Getters and Setters
 
     public Long getId() {
@@ -59,6 +61,14 @@ public class Menu {
 
     public void setPrice(BigDecimal price) {
         this.price = price;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
     }
 }
 

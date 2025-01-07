@@ -4,6 +4,7 @@ import com.foodDelivery.foodDeliveryCoursework.model.Menu;
 import com.foodDelivery.foodDeliveryCoursework.model.Order;
 import com.foodDelivery.foodDeliveryCoursework.model.Restaurant;
 import com.foodDelivery.foodDeliveryCoursework.model.User;
+import com.foodDelivery.foodDeliveryCoursework.repository.OrderRepository;
 import com.foodDelivery.foodDeliveryCoursework.repository.RestaurantRepository;
 import com.foodDelivery.foodDeliveryCoursework.repository.UserRepository;
 import com.foodDelivery.foodDeliveryCoursework.service.MenuService;
@@ -19,6 +20,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/admin")
@@ -41,6 +44,9 @@ public class AdminController {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private OrderRepository orderRepository;
 
 
     @GetMapping("/orders")
@@ -91,9 +97,105 @@ public class AdminController {
     }
 
     @GetMapping("/reports")
-    public String getReportsPage() {
+    public String getReportsPage(Model model) {
+        try {
+            System.out.println("Начало выполнения метода getReportsPage");
+
+            // Статистика по статусам заказов (оставляем для полноты)
+            System.out.println("Получение всех заказов");
+            List<Order> allOrders = orderService.findAllOrders();
+            System.out.println("allOrders: " + allOrders);
+
+            Map<String, Long> orderStatusCount = allOrders.stream()
+                    .collect(Collectors.groupingBy(order -> order.getStatus().toString(), Collectors.counting()));
+            System.out.println("orderStatusCount: " + orderStatusCount);
+
+            model.addAttribute("orderStatuses", orderStatusCount.keySet());
+            model.addAttribute("orderCountsByStatus", orderStatusCount.values());
+
+            // Фильтруем только заказы со статусом DELIVERED
+            System.out.println("Фильтрация заказов со статусом DELIVERED");
+            List<Order> deliveredOrders = allOrders.stream()
+                    .filter(order -> order.getStatus() == Order.Status.DELIVERED)
+                    .collect(Collectors.toList());
+            System.out.println("deliveredOrders: " + deliveredOrders);
+
+            // Статистика по количеству заказов по дням
+            System.out.println("Получение заказов по дням (DELIVERED)");
+            Map<String, Long> ordersPerDay = deliveredOrders.stream()
+                    .collect(Collectors.groupingBy(order -> order.getCreatedAt().toLocalDate().toString(), Collectors.counting()));
+            System.out.println("ordersPerDay: " + ordersPerDay);
+
+            model.addAttribute("orderDates", ordersPerDay.keySet());
+            model.addAttribute("ordersByDay", ordersPerDay.values());
+
+            // Статистика по ресторанам
+            System.out.println("Получение статистики по ресторанам (DELIVERED)");
+            List<Restaurant> restaurants = restaurantRepository.findAll();
+            System.out.println("restaurants: " + restaurants);
+
+            Map<String, Long> orderCountsByRestaurant = restaurants.stream()
+                    .collect(Collectors.toMap(
+                            Restaurant::getName,
+                            restaurant -> deliveredOrders.stream()
+                                    .filter(order -> order.getRestaurant().getId().equals(restaurant.getId()))
+                                    .count()
+                    ));
+            System.out.println("orderCountsByRestaurant: " + orderCountsByRestaurant);
+
+            Map<String, Double> revenueByRestaurant = restaurants.stream()
+                    .collect(Collectors.toMap(
+                            Restaurant::getName,
+                            restaurant -> deliveredOrders.stream()
+                                    .filter(order -> order.getRestaurant().getId().equals(restaurant.getId()))
+                                    .mapToDouble(order -> order.getTotalAmount().doubleValue()) // Преобразование BigDecimal в double
+                                    .sum()
+                    ));
+            System.out.println("revenueByRestaurant: " + revenueByRestaurant);
+
+            model.addAttribute("restaurants", orderCountsByRestaurant.keySet());
+            model.addAttribute("orderCountsByRestaurant", orderCountsByRestaurant.values());
+            model.addAttribute("revenuesByRestaurant", revenueByRestaurant.values());
+
+            // Статистика по пользователям
+            System.out.println("Получение статистики по пользователям (DELIVERED)");
+            Map<String, Long> orderCountsByUser = deliveredOrders.stream()
+                    .collect(Collectors.groupingBy(order -> order.getUser().getUsername(), Collectors.counting()));
+            System.out.println("orderCountsByUser: " + orderCountsByUser);
+
+            // Статистика по пользователям (выручка)
+            System.out.println("Получение статистики по пользователям");
+            Map<String, Double> userRevenue = deliveredOrders.stream()
+                    .collect(Collectors.groupingBy(
+                            order -> order.getUser().getUsername(),
+                            Collectors.summingDouble(order -> order.getTotalAmount().doubleValue()) // Преобразование BigDecimal в double
+                    ));
+
+            System.out.println("userRevenue: " + userRevenue);
+
+            model.addAttribute("users", orderCountsByUser.keySet());
+            model.addAttribute("orderCountsByUser", orderCountsByUser.values());
+            model.addAttribute("userRevenues", userRevenue.values());
+
+            // Статистика по заказам по времени суток
+            System.out.println("Статистика по заказам по часам (DELIVERED)");
+            Map<String, Long> ordersByHour = deliveredOrders.stream()
+                    .collect(Collectors.groupingBy(order -> String.valueOf(order.getCreatedAt().getHour()), Collectors.counting()));
+            System.out.println("ordersByHour: " + ordersByHour);
+
+            model.addAttribute("orderHours", ordersByHour.keySet());
+            model.addAttribute("ordersByHour", ordersByHour.values());
+
+        } catch (Exception e) {
+            System.out.println("EEXXXCEPRION: " + e.getMessage());
+            e.printStackTrace(); // Для вывода полного стека исключения
+        }
+
         return "admin/reports";
     }
+
+
+
 
     @PostMapping("/restaurants/save")
     public String saveRestaurant(

@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Отчеты ресторана</title>
+
+  <!-- Bootstrap 4 CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/css/bootstrap.min.css">
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+        .container {
+            margin-top: 70px;
+        }
+        .chart-container {
+            width: 80%;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top">
+  <a class="navbar-brand" href="#">Food Delivery - Ресторан</a>
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+  <div class="collapse navbar-collapse" id="navbarNav">
+    <ul class="navbar-nav">
+      <li class="nav-item">
+        <a class="nav-link" href="/restaurant/orders">Заказы</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="/restaurant/menus">Меню</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="/restaurant/reports">Статистика</a>
+      </li>
+    </ul>
+    <ul class="navbar-nav ml-auto">
+      <li class="nav-item">
+        <a class="nav-link" href="/auth/logout">Выйти</a>
+      </li>
+    </ul>
+  </div>
+</nav>
+<!-- END NAVBAR -->
+
+<!-- CONTENT -->
+<div class="container">
+  <h1 class="mb-4">Отчеты по заказам</h1>
+
+  <!-- График по количеству заказов -->
+  <div class="card">
+    <div class="card-body">
+      <h5>Количество заказов по дням</h5>
+      <canvas id="ordersCountChart"></canvas>
+    </div>
+  </div>
+
+  <!-- График по общей сумме -->
+  <div class="card mt-4">
+    <div class="card-body">
+      <h5>Общая сумма заказов по дням</h5>
+      <canvas id="totalAmountChart"></canvas>
+    </div>
+  </div>
+
+  <div class="card mt-4">
+    <div class="card-body">
+      <h5>Пропорции заказов по статусам</h5>
+      <canvas id="orderStatusChart"></canvas>
+    </div>
+  </div>
+
+</div>
+<!-- END CONTENT -->
+
+<!-- SCRIPTS -->
+<script th:inline="javascript">
+    // Передаем данные из модели Thymeleaf
+    const dates = /*[[${dates}]]*/ [];
+    const orderCounts = /*[[${orderCounts}]]*/ [];
+    const totalAmounts = /*[[${totalAmounts}]]*/ [];
+    const statuses = /*[[${statuses}]]*/ [];
+    const statusCounts = /*[[${statusCounts}]]*/ [];
+
+    console.log("Dates: ", dates);
+    console.log("Order Counts: ", orderCounts);
+    console.log("Total Amounts: ", totalAmounts);
+    console.log("Statuses: ", statuses);
+    console.log("Status Counts: ", statusCounts);
+
+    document.addEventListener("DOMContentLoaded", function () {
+        // График 1: Количество заказов
+        const ordersCountCtx = document.getElementById('ordersCountChart').getContext('2d');
+        new Chart(ordersCountCtx, {
+            type: 'bar',
+            data: {
+                labels: dates, // Даты
+                datasets: [{
+                    label: 'Количество заказов (DELIVERED)',
+                    data: orderCounts, // Количество заказов на каждую дату
+                    backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    x: {
+                        type: 'category',
+                        title: {
+                            display: true,
+                            text: 'Дата'
+                        }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Количество заказов'
+                        }
+                    }
+                }
+            }
+        });
+
+        // График 2: Общая сумма заказов
+        const totalAmountCtx = document.getElementById('totalAmountChart').getContext('2d');
+        new Chart(totalAmountCtx, {
+            type: 'line',
+            data: {
+                labels: dates, // Даты
+                datasets: [{
+                    label: 'Общая сумма заказов (BYN, только DELIVERED)',
+                    data: totalAmounts, // Сумма заказов на каждую дату
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    x: {
+                        type: 'category',
+                        title: {
+                            display: true,
+                            text: 'Дата'
+                        }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Сумма (BYN)'
+                        }
+                    }
+                }
+            }
+        });
+
+        // График 3: Пропорции заказов по статусам
+        const orderStatusCtx = document.getElementById('orderStatusChart').getContext('2d');
+        new Chart(orderStatusCtx, {
+            type: 'pie',
+            data: {
+                labels: statuses, // Статусы заказов
+                datasets: [{
+                    label: 'Пропорции заказов',
+                    data: statusCounts, // Количество заказов по статусам
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.5)', // Цвет для каждого статуса
+                        'rgba(54, 162, 235, 0.5)',
+                        'rgba(255, 206, 86, 0.5)',
+                        'rgba(75, 192, 192, 0.5)',
+                        'rgba(153, 102, 255, 0.5)',
+                        'rgba(255, 159, 64, 0.5)'
+                    ],
+                    borderColor: [
+                        'rgba(255, 99, 132, 1)',
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(255, 206, 86, 1)',
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(153, 102, 255, 1)',
+                        'rgba(255, 159, 64, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(tooltipItem) {
+                                return `${tooltipItem.label}: ${tooltipItem.raw} заказов`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    });
+</script>
+
+
+<!-- END SCRIPTS -->
+
+</body>
+</html>

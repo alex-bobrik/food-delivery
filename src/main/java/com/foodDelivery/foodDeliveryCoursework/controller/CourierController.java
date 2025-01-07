@@ -1,5 +1,7 @@
 package com.foodDelivery.foodDeliveryCoursework.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.foodDelivery.foodDeliveryCoursework.model.Order;
 import com.foodDelivery.foodDeliveryCoursework.model.User;
 import com.foodDelivery.foodDeliveryCoursework.service.OrderService;
@@ -15,6 +17,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/courier")
@@ -66,5 +70,29 @@ public class CourierController {
         }
 
         return "redirect:/courier/orders";
+    }
+
+    @GetMapping("/reports")
+    public String courierReportsPage(Model model) throws JsonProcessingException {
+        User courier = this.userService.getCurrentUser();
+        // Получаем только доставленные заказы текущего курьера
+        List<Order> deliveredOrders = orderService.findOrdersByCourierAndStatus(courier.getId(), Order.Status.DELIVERED);
+
+        // Группируем заказы по дате
+        Map<String, Long> ordersByDate = deliveredOrders.stream()
+                .collect(Collectors.groupingBy(
+                        order -> order.getUpdatedAt().toLocalDate().toString(), // Это уже строка "yyyy-MM-dd"
+                        Collectors.counting()
+                ));
+
+        // Передаем даты и количество заказов в представление
+        model.addAttribute("dates", ordersByDate.keySet());
+        model.addAttribute("orderCounts", ordersByDate.values());
+
+        System.out.println("ORDERS KEYS");
+        System.out.println(ordersByDate.keySet());
+        System.out.println("ORDERS KEYS");
+        System.out.println(ordersByDate.values());
+        return "courier/reports";
     }
 }

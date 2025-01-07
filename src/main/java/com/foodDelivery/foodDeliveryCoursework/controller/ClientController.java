@@ -14,6 +14,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -63,7 +64,12 @@ public class ClientController {
 
     // Подтверждение заказа
     @PostMapping("/order/confirm")
-    public String confirmOrder(@RequestParam("menuId") Long menuId) {
+    public String confirmOrder(@RequestParam("menuId") Long menuId,
+                               @RequestParam("quantity") int quantity) {
+        if (quantity < 1 || quantity > 50) {
+            throw new IllegalArgumentException("Количество должно быть от 1 до 50.");
+        }
+
         Menu menu = menuRepository.findById(menuId)
                 .orElseThrow(() -> new IllegalArgumentException("Меню с ID " + menuId + " не найдено"));
 
@@ -74,7 +80,7 @@ public class ClientController {
         order.setUser(currentUser);
         order.setRestaurant(menu.getRestaurant());
         order.setStatus(Order.Status.NEW);
-        order.setTotalAmount(menu.getPrice());
+        order.setTotalAmount(menu.getPrice().multiply(BigDecimal.valueOf(quantity))); // Итоговая цена
         order.setCreatedAt(LocalDateTime.now());
         order.setUpdatedAt(LocalDateTime.now());
         order = orderRepository.save(order);
@@ -83,10 +89,11 @@ public class ClientController {
         OrderItem orderItem = new OrderItem();
         orderItem.setOrder(order);
         orderItem.setMenuItem(menu);
-        orderItem.setQuantity(1); // Один элемент
-        orderItem.setPrice(menu.getPrice());
+        orderItem.setQuantity(quantity); // Установить выбранное количество
+        orderItem.setPrice(menu.getPrice()); // Цена за единицу
         orderItemRepository.save(orderItem);
 
         return "redirect:/client/orders";
     }
+
 }

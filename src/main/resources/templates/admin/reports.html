@@ -1,34 +1,396 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Отчеты</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Статистика - Администратор</title>
+
+    <!-- Bootstrap 4 CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/css/bootstrap.min.css">
+
+    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Chart.js Date Adapter -->
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@1.0.0"></script>
+
+    <style>
+        .container {
+            margin-top: 70px;
+        }
+        .chart-container {
+            margin-bottom: 50px;
+        }
+        .card {
+            margin-bottom: 30px;
+        }
+    </style>
 </head>
 <body>
-<h1>Отчеты</h1>
-<canvas id="ordersChart" width="400" height="200"></canvas>
-<script>
-        const ctx = document.getElementById('ordersChart').getContext('2d');
-        const ordersChart = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: ['Ресторан 1', 'Ресторан 2', 'Ресторан 3'], // Здесь должны быть данные с сервера
-                datasets: [{
-                    label: 'Количество заказов',
-                    data: [12, 19, 3], // Здесь тоже данные с сервера
-                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                    borderColor: 'rgba(75, 192, 192, 1)',
-                    borderWidth: 1
-                }]
+
+<!-- NAVBAR -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top">
+    <a class="navbar-brand" href="#">Food Delivery - Администратор</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav">
+            <li class="nav-item">
+                <a class="nav-link" href="/admin/orders">Заказы</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/admin/restaurants">Рестораны</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/admin/users">Пользователи</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/admin/reports">Отчеты</a>
+            </li>
+        </ul>
+        <ul class="navbar-nav ml-auto">
+            <li class="nav-item">
+                <a class="nav-link" href="/auth/logout">
+                    Выйти
+                </a>
+            </li>
+        </ul>
+    </div>
+</nav>
+<!-- END NAVBAR -->
+
+<!-- CONTENT -->
+<!-- CONTENT -->
+<div class="container">
+    <h1 class="mb-4">Статистика по заказам</h1>
+
+    <div class="row">
+        <!-- Первый график - Количество заказов по статусам -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5>Количество заказов по статусам</h5>
+                    <canvas id="orderStatusChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Второй график - Выручка по ресторанам -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5>Выручка по ресторанам</h5>
+                    <canvas id="restaurantRevenueChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Третий график - Количество заказов по дням -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5>Количество заказов по дням</h5>
+                    <canvas id="ordersPerDayChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Четвертый график - Выручка по пользователям -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5>Выручка по пользователям</h5>
+                    <canvas id="userOrderChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Пятый график - Количество заказов по часам суток -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5>Количество заказов по часам суток</h5>
+                    <canvas id="ordersPerHourChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Шестой график - Количество заказов по пользователям (горизонтальный бар) -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5>Количество заказов по пользователям</h5>
+                    <canvas id="userOrdersBarChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- END CONTENT -->
+
+<!-- SCRIPTS -->
+<script th:inline="javascript">
+    // Данные для графиков
+    const orderStatuses = /*[[${orderStatuses}]]*/ [];
+    const orderCountsByStatus = /*[[${orderCountsByStatus}]]*/ [];
+    const orderDates = /*[[${orderDates}]]*/ [];
+    const ordersByDay = /*[[${ordersByDay}]]*/ [];
+    const restaurants = /*[[${restaurants}]]*/ [];
+    const orderCountsByRestaurant = /*[[${orderCountsByRestaurant}]]*/ [];
+    const revenuesByRestaurant = /*[[${revenuesByRestaurant}]]*/ [];
+    const userRevenues  = /*[[${userRevenues }]]*/ [];
+    const users = /*[[${users}]]*/ [];
+    const orderCountsByUser = /*[[${orderCountsByUser}]]*/ [];
+    const orderHours = /*[[${orderHours}]]*/ [];
+    const ordersByHour = /*[[${ordersByHour}]]*/ [];
+
+    // График по заказам по статусам (Pie Chart)
+    const ctx1 = document.getElementById('orderStatusChart').getContext('2d');
+    new Chart(ctx1, {
+        type: 'pie',
+        data: {
+            labels: orderStatuses,
+            datasets: [{
+                data: orderCountsByStatus,
+                backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56'],
+                hoverBackgroundColor: ['#FF6384', '#36A2EB', '#FFCE56']
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'top',
+                },
             },
-            options: {
-                scales: {
-                    y: {
-                        beginAtZero: true
+        }
+    });
+
+    // График по количеству заказов по дням (Line Chart)
+const ctx2 = document.getElementById('ordersPerDayChart').getContext('2d');
+new Chart(ctx2, {
+    type: 'line',
+    data: {
+        labels: orderDates,
+        datasets: [{
+            label: 'Количество заказов',
+            data: ordersByDay,
+            borderColor: '#36A2EB',
+            fill: false,
+            tension: 0.1
+        }]
+    },
+    options: {
+        responsive: true,
+        scales: {
+            x: {
+                type: 'category',
+                title: {
+                    display: true,
+                    text: 'Дата'
+                }
+            },
+            y: {
+                beginAtZero: true,
+                stepSize: 1,  // Шаг оси Y равен 1
+                title: {
+                    display: true,
+                    text: 'Количество заказов'
+                },
+                ticks: {
+                    stepSize: 1,  // Указываем шаг для оси Y
+                    callback: function(value) {
+                        return Number.isInteger(value) ? value : ''; // Гарантируем, что ось будет отображать только целые числа
                     }
                 }
             }
-        });
-    </script>
+        }
+    }
+});
+
+    // График по ресторанам: заказы и выручка (Bar Chart)
+    const ctx3 = document.getElementById('restaurantRevenueChart').getContext('2d');
+new Chart(ctx3, {
+    type: 'bar',
+    data: {
+        labels: restaurants,
+        datasets: [{
+            label: 'Количество заказов',
+            data: orderCountsByRestaurant,
+            backgroundColor: '#FF6384',
+            borderColor: '#FF6384',
+            borderWidth: 1
+        }, {
+            label: 'Выручка (BYN)',
+            data: revenuesByRestaurant,
+            backgroundColor: '#36A2EB',
+            borderColor: '#36A2EB',
+            borderWidth: 1
+        }]
+    },
+    options: {
+        responsive: true,
+        scales: {
+            x: {
+                type: 'category',
+                title: {
+                    display: true,
+                    text: 'Рестораны'
+                }
+            },
+            y: {
+                beginAtZero: true,
+                stepSize: 1,  // Шаг оси Y равен 1
+                title: {
+                    display: true,
+                    text: 'Значение'
+                },
+                ticks: {
+                    stepSize: 1,  // Указываем шаг для оси Y
+                    callback: function(value) {
+                        return Number.isInteger(value) ? value : ''; // Гарантируем, что ось будет отображать только целые числа
+                    }
+                }
+            }
+        }
+    }
+});
+
+// График по пользователям (Bar Chart - Выручка)
+const ctx4 = document.getElementById('userOrderChart').getContext('2d');
+new Chart(ctx4, {
+    type: 'bar',
+    data: {
+        labels: users, // Имена пользователей
+        datasets: [{
+            label: 'Выручка (BYN)', // Изменено название
+            data: userRevenues, // Выручка пользователей
+            backgroundColor: '#FFCE56',
+            borderColor: '#FFCE56',
+            borderWidth: 1
+        }]
+    },
+    options: {
+        responsive: true,
+        scales: {
+            x: {
+                type: 'category',
+                title: {
+                    display: true,
+                    text: 'Пользователи'
+                }
+            },
+            y: {
+                beginAtZero: true,
+                title: {
+                    display: true,
+                    text: 'Выручка (BYN)' // Изменено название
+                },
+                ticks: {
+                    callback: function(value) {
+                        return value.toFixed(2) + ' BYN'; // Форматирование значения
+                    }
+                }
+            }
+        }
+    }
+});
+
+
+
+    // График по заказам по часам суток (Bar Chart)
+const ctx5 = document.getElementById('ordersPerHourChart').getContext('2d');
+new Chart(ctx5, {
+    type: 'bar',
+    data: {
+        labels: orderHours,
+        datasets: [{
+            label: 'Количество заказов',
+            data: ordersByHour,
+            backgroundColor: '#36A2EB',
+            borderColor: '#36A2EB',
+            borderWidth: 1
+        }]
+    },
+    options: {
+        responsive: true,
+        scales: {
+            x: {
+                type: 'category',
+                title: {
+                    display: true,
+                    text: 'Часы суток'
+                }
+            },
+            y: {
+                beginAtZero: true,
+                stepSize: 1,  // Шаг оси Y равен 1
+                title: {
+                    display: true,
+                    text: 'Количество заказов'
+                },
+                ticks: {
+                    stepSize: 1,  // Указываем шаг для оси Y
+                    callback: function(value) {
+                        return Number.isInteger(value) ? value : ''; // Гарантируем, что ось будет отображать только целые числа
+                    }
+                }
+            }
+        }
+    }
+});
+
+
+    // График по пользователям: количество заказов (горизонтальный Bar Chart)
+    const ctx6 = document.getElementById('userOrdersBarChart').getContext('2d');
+new Chart(ctx6, {
+    type: 'bar',
+    data: {
+        labels: users,
+        datasets: [{
+            label: 'Количество заказов',
+            data: orderCountsByUser,
+            backgroundColor: '#FFCE56',
+            borderColor: '#FFCE56',
+            borderWidth: 1
+        }]
+    },
+    options: {
+        responsive: true,
+        indexAxis: 'y', // Горизонтальная ось
+        scales: {
+            x: {
+                beginAtZero: true,
+                stepSize: 1,  // Шаг оси X равен 1
+                title: {
+                    display: true,
+                    text: 'Количество заказов'
+                },
+                ticks: {
+                    stepSize: 1,  // Указываем шаг для оси X
+                    callback: function(value) {
+                        return Number.isInteger(value) ? value : ''; // Гарантируем, что ось будет отображать только целые числа
+                    }
+                }
+            },
+            y: {
+                title: {
+                    display: true,
+                    text: 'Пользователи'
+                }
+            }
+        }
+    }
+});
+
+</script>
+
+<!-- END SCRIPTS -->
+
 </body>
 </html>

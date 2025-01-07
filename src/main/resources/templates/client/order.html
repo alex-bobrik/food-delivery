@@ -4,19 +4,117 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Подтверждение заказа</title>
+
+  <!-- Bootstrap 4 CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/css/bootstrap.min.css">
+
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@200;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+  <style>
+        .container {
+            margin-top: 70px;
+        }
+
+        .card-img-top {
+            width: 100%;
+            height: 300px;
+            object-fit: cover;
+        }
+    </style>
 </head>
 <body>
-<h1>Подтверждение заказа</h1>
 
-<p>Блюдо: <span th:text="${menu.name}"></span></p>
-<p>Описание: <span th:text="${menu.description}"></span></p>
-<p>Цена: <span th:text="${menu.price} + ' ₽'"></span></p>
-<p>Ресторан: <span th:text="${menu.restaurant.name}"></span></p>
-<p>Итоговая цена: <span th:text="${totalPrice} + ' ₽'"></span></p>
+<!-- NAVBAR -->
+<nav class="navbar navbar-expand-xl navbar-dark bg-primary fixed-top">
+  <a class="navbar-brand" href="#">Food Delivery</a>
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+  <div class="collapse navbar-collapse" id="navbarNav">
+    <ul class="navbar-nav">
+      <li class="nav-item">
+        <a class="nav-link" href="/client/menus">
+          Меню
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="/client/orders">
+          Заказы
+        </a>
+      </li>
+    </ul>
+    <ul class="navbar-nav ml-auto">
+      <li class="nav-item">
+        <a class="nav-link" href="/auth/logout">
+          Выйти
+        </a>
+      </li>
+    </ul>
+  </div>
+</nav>
+<!-- END NAVBAR -->
 
-<form th:action="@{/client/order/confirm}" method="post">
-  <input type="hidden" name="menuId" th:value="${menu.id}" />
-  <button type="submit">Подтвердить</button>
-</form>
+<!-- CONTENT -->
+<div class="container">
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+      <div class="card">
+        <img th:src="'/' + ${menu.imageUrl}" class="card-img-top" alt="Menu Image">
+        <div class="card-body">
+          <h5 class="card-title">Подтверждение заказа</h5>
+          <p class="card-text"><strong>Блюдо:</strong> <span th:text="${menu.name}"></span></p>
+          <p class="card-text"><strong>Описание:</strong> <span th:text="${menu.description}"></span></p>
+          <p class="card-text"><strong>Цена за единицу:</strong> <span id="unitPrice" th:text="${menu.price}"></span> BYN</p>
+          <p class="card-text"><strong>Ресторан:</strong> <span th:text="${menu.restaurant.name}"></span></p>
+
+          <!-- Итоговая цена -->
+          <p class="card-text"><strong>Итоговая стоимость:</strong>
+            <span id="totalPrice" th:text="${menu.price}"></span> BYN
+          </p>
+
+          <form th:action="@{/client/order/confirm}" method="post">
+            <input type="hidden" name="menuId" th:value="${menu.id}">
+
+            <!-- Выбор количества -->
+            <div class="form-group">
+              <label for="quantity"><strong>Количество:</strong></label>
+              <input type="number" id="quantity" name="quantity" class="form-control" value="1" min="1" max="50" required>
+            </div>
+
+            <button type="submit" class="btn btn-success btn-block">Подтвердить заказ</button>
+            <a href="/client/menus" class="btn btn-secondary btn-block">Отмена</a>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- END CONTENT -->
+
+<!-- SCRIPTS -->
+<!-- jQuery -->
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+
+<!-- Bootstrap 4 JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const quantityInput = document.getElementById("quantity");
+        const unitPrice = parseFloat(document.getElementById("unitPrice").textContent);
+        const totalPriceElement = document.getElementById("totalPrice");
+
+        // Обновление итоговой стоимости при изменении количества
+        quantityInput.addEventListener("input", function () {
+            const quantity = parseInt(quantityInput.value) || 1; // Защита от пустого или некорректного значения
+            const totalPrice = unitPrice * quantity;
+            totalPriceElement.textContent = totalPrice.toFixed(2); // Обновление отображения
+        });
+    });
+</script>
+<!-- END SCRIPTS -->
+
 </body>
 </html>

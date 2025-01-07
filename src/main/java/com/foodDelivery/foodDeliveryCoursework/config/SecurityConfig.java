@@ -31,7 +31,14 @@ public class SecurityConfig {
                         .ignoringRequestMatchers("/h2-console/**") // Отключаем CSRF для H2 Console
                 )
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/h2-console/**", "/auth/login", "/auth/register", "/css/**", "/js/**").permitAll()
+                        .requestMatchers(
+                                "/h2-console/**",
+                                "/auth/login",
+                                "/auth/register",
+                                "/css/**",
+                                "/js/**",
+                                "/uploads/*"
+                        ).permitAll()
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form

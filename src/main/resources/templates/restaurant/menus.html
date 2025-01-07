@@ -1,49 +1,106 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Меню ресторана</title>
 
-  <!-- Bootstrap -->
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+  <!-- Bootstrap 4 CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/css/bootstrap.min.css">
 
+  <!-- DataTables CSS -->
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.10.22/css/dataTables.bootstrap4.min.css">
+
+  <style>
+    .container {
+        margin-top: 70px;
+    }
+  </style>
 </head>
 <body>
-<h1>Ваше меню</h1>
 
-<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModal"
-        onclick="fillModal(null, '', '', '')">
-  Новое меню..
-</button>
+<!-- NAVBAR -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top">
+  <a class="navbar-brand" href="#">Food Delivery - Ресторан</a>
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+  <div class="collapse navbar-collapse" id="navbarNav">
+    <ul class="navbar-nav">
+      <li class="nav-item">
+        <a class="nav-link" href="/restaurant/orders">Заказы</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="/restaurant/menus">Меню</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="/restaurant/reports">Статистика</a>
+      </li>
+    </ul>
+    <ul class="navbar-nav ml-auto">
+      <li class="nav-item">
+        <a class="nav-link" href="/auth/logout">Выйти</a>
+      </li>
+    </ul>
+  </div>
+</nav>
+<!-- END NAVBAR -->
 
-<table>
-  <thead>
-  <tr>
-    <th>Название блюда</th>
-    <th>Описание</th>
-    <th>Цена</th>
-    <th>Действия</th>
-  </tr>
-  </thead>
-  <tbody>
-  <tr th:each="menu : ${menus}">
-    <td th:text="${menu.name}"></td>
-    <td th:text="${menu.description}"></td>
-    <td th:text="${menu.price}"></td>
-    <td>
-      <button type="button" class="btn btn-warning" data-toggle="modal" data-target="#exampleModal"
-              onclick="fillModal([[${menu.id}]], '[[${menu.name}]]', '[[${menu.description}]]', [[${menu.price}]])">
-        Редактировать
-      </button>
-    </td>
-  </tr>
-  </tbody>
-</table>
+<!-- CONTENT -->
+<div class="container">
+  <div>
+    <h1>Меню ресторана</h1>
+    <button style="float: right" type="button" class="btn btn-primary mb-3" data-toggle="modal" data-target="#exampleModal" onclick="fillModal(null, '', '', 0)">
+      Новое блюдо..
+    </button>
+  </div>
+  <br>
+  <br>
+
+  <table class="table table-striped" id="menuTable">
+    <thead>
+    <tr>
+      <th>Изображение</th>
+      <th>Название блюда</th>
+      <th>Описание</th>
+      <th>Цена, BYN</th>
+      <th>Действия</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="menu : ${menus}">
+      <td>
+        <img th:src="'/' + ${menu.imageUrl}" alt="Menu Image" style="width: 100px; height: 100px;" />
+      </td>
+      <td th:text="${menu.name}"></td>
+      <td th:text="${menu.description}"></td>
+      <td th:text="${menu.price}"></td>
+      <td>
+        <button type="button"
+                class="btn btn-warning"
+                data-toggle="modal"
+                data-target="#exampleModal"
+                th:attr="data-id=${menu.id}, data-name=${menu.name}, data-description=${menu.description}, data-price=${menu.price}">
+          Редактировать
+        </button>
+        <form th:action="@{/restaurant/menu/delete}" method="post" style="display:inline;">
+          <input type="hidden" name="menu_id" th:value="${menu.id}" />
+          <button type="submit" class="btn btn-danger" onclick="return confirm('Вы уверены, что хотите удалить это блюдо?');">
+            Удалить
+          </button>
+        </form>
+      </td>
+    </tr>
+    </tbody>
+  </table>
+</div>
+<!-- END CONTENT -->
 
 <!-- Update menu modal -->
 <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
-      <form th:action="@{/restaurant/menus/save}" method="post">
+      <form th:action="@{/restaurant/menus/save}" method="post" enctype="multipart/form-data">
         <div class="modal-header">
           <h5 class="modal-title" id="exampleModalLabel">Управление меню</h5>
           <button type="button" class="close" data-dismiss="modal" aria-label="Close">
@@ -64,7 +121,11 @@
           </div>
           <div class="form-group">
             <label for="menu_price">Цена</label>
-            <input type="number" class="form-control" name="menu_price" id="menu_price" required />
+            <input type="number" class="form-control" name="menu_price" id="menu_price" step="0.01" required />
+          </div>
+          <div class="form-group">
+            <label for="menu_image">Цена</label>
+            <input type="file" class="form-control" name="menu_image" id="menu_image" />
           </div>
         </div>
         <div class="modal-footer">
@@ -76,28 +137,57 @@
   </div>
 </div>
 
-<script>
-    function fillModal(id, name, description, price) {
-        const isNew = !id; // Если id пустой, значит создается новое меню
-        document.getElementById("update_menu_id").value = id || ""; // Устанавливаем ID
-        document.getElementById("menu_name").value = name || "";
-        document.getElementById("menu_description").value = description || "";
-        document.getElementById("menu_price").value = price || "";
+<!-- SCRIPTS -->
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.datatables.net/1.10.22/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.10.22/js/dataTables.bootstrap4.min.js"></script>
 
-        // Если это новое меню, поля должны быть обязательными
-        const fields = document.querySelectorAll("input, textarea");
-        fields.forEach(function(field) {
-            field.required = isNew;
-        });
-    }
+<script>
+  $(document).ready(function () {
+      $('#menuTable').DataTable({
+          "aaSorting": [],
+          paging: true,
+          scrollCollapse: true,
+          scrollY: '500px',
+          columnDefs: [{
+              orderable: false,
+              targets: [4],
+          }]
+      });
+  });
 </script>
 
-<!--Bootstrap -->
-<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    // Добавление обработчиков кликов для кнопок "Редактировать"
+    document.querySelectorAll(".btn-warning").forEach(function (button) {
+        button.addEventListener("click", function () {
+            const id = this.getAttribute("data-id");
+            const name = this.getAttribute("data-name");
+            const description = this.getAttribute("data-description");
+            const price = this.getAttribute("data-price");
 
+            fillModal(id, name, description, price);
+        });
+    });
+});
 
+function fillModal(id, name, description, price) {
+    const isNew = !id; // Проверяем, создается новое блюдо или редактируется существующее
+    document.getElementById("update_menu_id").value = id || null; // Устанавливаем ID блюда
+    document.getElementById("menu_name").value = name || ""; // Устанавливаем название блюда
+    document.getElementById("menu_description").value = description || ""; // Устанавливаем описание блюда
+    document.getElementById("menu_price").value = price || 0; // Устанавливаем цену
+
+    // Если это новое блюдо, делаем поля обязательными
+    document.getElementById("menu_name").required = isNew;
+    document.getElementById("menu_description").required = isNew;
+    document.getElementById("menu_price").required = isNew;
+    document.getElementById("menu_image").required = isNew;
+}
+</script>
 
 </body>
 </html>
+

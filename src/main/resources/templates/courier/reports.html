@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Отчеты курьера</title>
+
+    <!-- Bootstrap 4 CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/css/bootstrap.min.css">
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Chart.js Date Adapter (chartjs-adapter-date-fns) -->
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@1.0.0"></script>
+
+    <style>
+        .container {
+            margin-top: 70px;
+        }
+    </style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top">
+    <a class="navbar-brand" href="#">Food Delivery - Курьер</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav">
+            <li class="nav-item">
+                <a class="nav-link" href="/courier/new-orders">Новые заказы</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/courier/orders">Мои заказы</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/courier/reports">Статистика заказов</a>
+            </li>
+        </ul>
+        <ul class="navbar-nav ml-auto">
+            <li class="nav-item">
+                <a class="nav-link" href="/auth/logout">Выйти</a>
+            </li>
+        </ul>
+    </div>
+</nav>
+<!-- END NAVBAR -->
+
+<!-- CONTENT -->
+<div class="container">
+    <h1 class="mb-4">Отчеты по доставленным заказам</h1>
+    <div class="card">
+        <div class="card-body">
+            <canvas id="deliveredOrdersChart"></canvas>
+        </div>
+    </div>
+</div>
+<!-- END CONTENT -->
+
+<!-- SCRIPTS -->
+<script th:inline="javascript">
+    // Преобразуем строки дат в объекты Date
+    const dates = /*[[${dates}]]*/ [];
+    const orderCounts = /*[[${orderCounts}]]*/ [];
+
+    console.log("Dates: ", dates); // Проверяем, что dates - это массив
+    console.log("Order Counts: ", orderCounts); // Проверяем, что orderCounts - это массив
+
+    // Убедитесь, что даты передаются как строки в формате YYYY-MM-DD
+    // Если даты уже строки, то можно их использовать без изменений
+    const dateObjects = dates;  // Не нужно преобразовывать в объекты Date, оставляем строки
+
+    console.log("Date Objects: ", dateObjects); // Проверяем преобразованные данные
+
+    // Создание графика
+    document.addEventListener("DOMContentLoaded", function () {
+        const ctx = document.getElementById('deliveredOrdersChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: dateObjects, // Используем массив строк с датами
+                datasets: [{
+                    label: 'Количество заказов',
+                    data: orderCounts, // Количество заказов на каждую дату
+                    backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    x: {
+                        type: 'category', // Поменяли на 'category', так как передаем строки
+                        title: {
+                            display: true,
+                            text: 'Дата'
+                        }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Количество заказов'
+                        }
+                    }
+                }
+            }
+        });
+    });
+</script>
+<!-- END SCRIPTS -->
+
+</body>
+</html>
