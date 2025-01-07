@@ -66,7 +66,6 @@
     <h1 class="mb-4">Статистика по заказам</h1>
 
     <div class="row">
-        <!-- Первый график - Количество заказов по статусам -->
         <div class="col-md-6">
             <div class="card">
                 <div class="card-body">
@@ -76,7 +75,6 @@
             </div>
         </div>
 
-        <!-- Второй график - Выручка по ресторанам -->
         <div class="col-md-6">
             <div class="card">
                 <div class="card-body">
@@ -88,7 +86,6 @@
     </div>
 
     <div class="row">
-        <!-- Третий график - Количество заказов по дням -->
         <div class="col-md-6">
             <div class="card">
                 <div class="card-body">
@@ -98,7 +95,6 @@
             </div>
         </div>
 
-        <!-- Четвертый график - Выручка по пользователям -->
         <div class="col-md-6">
             <div class="card">
                 <div class="card-body">
@@ -110,7 +106,6 @@
     </div>
 
     <div class="row">
-        <!-- Пятый график - Количество заказов по часам суток -->
         <div class="col-md-6">
             <div class="card">
                 <div class="card-body">
@@ -120,7 +115,6 @@
             </div>
         </div>
 
-        <!-- Шестой график - Количество заказов по пользователям (горизонтальный бар) -->
         <div class="col-md-6">
             <div class="card">
                 <div class="card-body">
@@ -253,7 +247,7 @@ new Chart(ctx3, {
                 ticks: {
                     stepSize: 1,  // Указываем шаг для оси Y
                     callback: function(value) {
-                        return Number.isInteger(value) ? value : ''; // Гарантируем, что ось будет отображать только целые числа
+                        return Number.isInteger(value) ? value : '';
                     }
                 }
             }

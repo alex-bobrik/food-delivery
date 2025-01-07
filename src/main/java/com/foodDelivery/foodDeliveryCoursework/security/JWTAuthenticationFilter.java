@@ -30,11 +30,10 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
         String token = request.getHeader("Authorization");
 
         if (token != null && token.startsWith("Bearer ")) {
-            token = token.substring(7); // Remove the "Bearer " prefix
+            token = token.substring(7);
             Claims claims = jwtUtil.extractClaims(token);
             if (claims != null) {
                 String username = claims.getSubject();
-                // Set user authentication in security context
                 SecurityContextHolder.getContext().setAuthentication(new CustomAuthentication(username));
             }
         }

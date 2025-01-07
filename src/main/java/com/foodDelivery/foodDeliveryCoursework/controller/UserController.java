@@ -18,8 +18,8 @@ public class UserController {
     @GetMapping("/users")
     public String getAllUsers(Model model) {
         List<User> users = userService.getAllUsers();
-        model.addAttribute("users", users); // Добавляем пользователей в модель, чтобы передать их в шаблон
-        return "users"; // Имя шаблона (users.html)
+        model.addAttribute("users", users);
+        return "users";
     }
 
     @PostMapping

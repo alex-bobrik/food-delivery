@@ -88,9 +88,7 @@
             <td th:text="${menu.description}"></td>
             <td th:text="${menu.price}"></td>
             <td>
-                <!-- Кнопка для удаления -->
                 <form th:action="@{/admin/menus/delete/{id}(id=${menu.id})}" method="post" style="display:inline;">
-                    <!-- Передаем ID ресторана как скрытое поле -->
                     <input type="hidden" name="restaurantId" th:value="${menu.restaurant.id}" />
                     <button type="submit" class="btn btn-danger" onclick="return confirm('Вы уверены, что хотите удалить это меню?');">
                         Удалить
@@ -129,11 +127,6 @@
     });
 </script>
 <!-- END SCRIPTS -->
-
-
-
-
-
 
 </body>
 </html>

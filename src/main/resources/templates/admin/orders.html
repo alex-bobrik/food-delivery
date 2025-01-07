@@ -87,7 +87,6 @@
             <td th:text="${order.status}"></td>
             <td th:text="${order.totalAmount}"></td>
             <td>
-                <!-- Кнопка "Отмена заказа" -->
                 <form th:action="@{/admin/orders/{id}/cancel(id=${order.id})}" method="post" style="display:inline;">
                     <button type="submit" class="btn btn-danger"
                             th:if="${order.status.toString() == 'NEW' || order.status.toString() == 'IN_PROGRESS'}"
@@ -96,7 +95,6 @@
                     </button>
                 </form>
 
-                <!-- Кнопка "Завершить заказ" -->
                 <form th:action="@{/admin/orders/{id}/complete(id=${order.id})}" method="post" style="display:inline;">
                     <button type="submit" class="btn btn-success"
                             th:if="${order.status.toString() == 'IN_PROGRESS'}"

@@ -11,7 +11,6 @@ import com.foodDelivery.foodDeliveryCoursework.service.MenuService;
 import com.foodDelivery.foodDeliveryCoursework.service.OrderService;
 import com.foodDelivery.foodDeliveryCoursework.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cglib.core.Local;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
@@ -48,7 +47,7 @@ public class AdminController {
     @Autowired
     private OrderRepository orderRepository;
 
-
+    // Orders
     @GetMapping("/orders")
     public String getAllOrders(Model model) {
         List<Order> orders = orderService.findAllOrders();
@@ -56,6 +55,19 @@ public class AdminController {
         return "admin/orders";
     }
 
+    @PostMapping("orders/{id}/cancel")
+    public String cancelOrder(@PathVariable Long id) {
+        orderService.updateOrderStatus(id, "CANCELLED");
+        return "redirect:/admin/orders";
+    }
+
+    @PostMapping("orders/{id}/complete")
+    public String completeOrder(@PathVariable Long id) {
+        orderService.updateOrderStatus(id, "DELIVERED");
+        return "redirect:/admin/orders";
+    }
+
+    // Restaurants
     @GetMapping("/restaurants")
     public String getAllRestaurants(Model model) {
         List<Restaurant> restaurants = restaurantRepository.findAll();
@@ -69,133 +81,6 @@ public class AdminController {
         model.addAttribute("menus", menus);
         return "admin/restaurant-menus";
     }
-
-    @PostMapping("/menus/delete/{id}")
-    public String deleteMenu(@PathVariable Long id, @RequestParam Long restaurantId) {
-        // Удаляем меню по его ID
-        menuService.deleteById(id);
-
-        // Перенаправляем обратно на страницу меню ресторана
-        return "redirect:/admin/restaurants/" + restaurantId + "/menus";
-    }
-
-
-
-    @GetMapping("/users")
-    public String getAllUsers(Authentication authentication, Model model) {
-        User currentUser = userService.findByUsername(authentication.getName());
-        List<User> users = userService.getAllUsers();
-        model.addAttribute("currentUserId", currentUser.getId());
-        model.addAttribute("users", users);
-        return "admin/users";
-    }
-
-    @PostMapping("/users/{id}/delete")
-    public String deleteUser(@PathVariable Long id) {
-        userService.deleteUserById(id);
-        return "redirect:/admin/users";
-    }
-
-    @GetMapping("/reports")
-    public String getReportsPage(Model model) {
-        try {
-            System.out.println("Начало выполнения метода getReportsPage");
-
-            // Статистика по статусам заказов (оставляем для полноты)
-            System.out.println("Получение всех заказов");
-            List<Order> allOrders = orderService.findAllOrders();
-            System.out.println("allOrders: " + allOrders);
-
-            Map<String, Long> orderStatusCount = allOrders.stream()
-                    .collect(Collectors.groupingBy(order -> order.getStatus().toString(), Collectors.counting()));
-            System.out.println("orderStatusCount: " + orderStatusCount);
-
-            model.addAttribute("orderStatuses", orderStatusCount.keySet());
-            model.addAttribute("orderCountsByStatus", orderStatusCount.values());
-
-            // Фильтруем только заказы со статусом DELIVERED
-            System.out.println("Фильтрация заказов со статусом DELIVERED");
-            List<Order> deliveredOrders = allOrders.stream()
-                    .filter(order -> order.getStatus() == Order.Status.DELIVERED)
-                    .collect(Collectors.toList());
-            System.out.println("deliveredOrders: " + deliveredOrders);
-
-            // Статистика по количеству заказов по дням
-            System.out.println("Получение заказов по дням (DELIVERED)");
-            Map<String, Long> ordersPerDay = deliveredOrders.stream()
-                    .collect(Collectors.groupingBy(order -> order.getCreatedAt().toLocalDate().toString(), Collectors.counting()));
-            System.out.println("ordersPerDay: " + ordersPerDay);
-
-            model.addAttribute("orderDates", ordersPerDay.keySet());
-            model.addAttribute("ordersByDay", ordersPerDay.values());
-
-            // Статистика по ресторанам
-            System.out.println("Получение статистики по ресторанам (DELIVERED)");
-            List<Restaurant> restaurants = restaurantRepository.findAll();
-            System.out.println("restaurants: " + restaurants);
-
-            Map<String, Long> orderCountsByRestaurant = restaurants.stream()
-                    .collect(Collectors.toMap(
-                            Restaurant::getName,
-                            restaurant -> deliveredOrders.stream()
-                                    .filter(order -> order.getRestaurant().getId().equals(restaurant.getId()))
-                                    .count()
-                    ));
-            System.out.println("orderCountsByRestaurant: " + orderCountsByRestaurant);
-
-            Map<String, Double> revenueByRestaurant = restaurants.stream()
-                    .collect(Collectors.toMap(
-                            Restaurant::getName,
-                            restaurant -> deliveredOrders.stream()
-                                    .filter(order -> order.getRestaurant().getId().equals(restaurant.getId()))
-                                    .mapToDouble(order -> order.getTotalAmount().doubleValue()) // Преобразование BigDecimal в double
-                                    .sum()
-                    ));
-            System.out.println("revenueByRestaurant: " + revenueByRestaurant);
-
-            model.addAttribute("restaurants", orderCountsByRestaurant.keySet());
-            model.addAttribute("orderCountsByRestaurant", orderCountsByRestaurant.values());
-            model.addAttribute("revenuesByRestaurant", revenueByRestaurant.values());
-
-            // Статистика по пользователям
-            System.out.println("Получение статистики по пользователям (DELIVERED)");
-            Map<String, Long> orderCountsByUser = deliveredOrders.stream()
-                    .collect(Collectors.groupingBy(order -> order.getUser().getUsername(), Collectors.counting()));
-            System.out.println("orderCountsByUser: " + orderCountsByUser);
-
-            // Статистика по пользователям (выручка)
-            System.out.println("Получение статистики по пользователям");
-            Map<String, Double> userRevenue = deliveredOrders.stream()
-                    .collect(Collectors.groupingBy(
-                            order -> order.getUser().getUsername(),
-                            Collectors.summingDouble(order -> order.getTotalAmount().doubleValue()) // Преобразование BigDecimal в double
-                    ));
-
-            System.out.println("userRevenue: " + userRevenue);
-
-            model.addAttribute("users", orderCountsByUser.keySet());
-            model.addAttribute("orderCountsByUser", orderCountsByUser.values());
-            model.addAttribute("userRevenues", userRevenue.values());
-
-            // Статистика по заказам по времени суток
-            System.out.println("Статистика по заказам по часам (DELIVERED)");
-            Map<String, Long> ordersByHour = deliveredOrders.stream()
-                    .collect(Collectors.groupingBy(order -> String.valueOf(order.getCreatedAt().getHour()), Collectors.counting()));
-            System.out.println("ordersByHour: " + ordersByHour);
-
-            model.addAttribute("orderHours", ordersByHour.keySet());
-            model.addAttribute("ordersByHour", ordersByHour.values());
-
-        } catch (Exception e) {
-            System.out.println("EEXXXCEPRION: " + e.getMessage());
-            e.printStackTrace(); // Для вывода полного стека исключения
-        }
-
-        return "admin/reports";
-    }
-
-
-
 
     @PostMapping("/restaurants/save")
     public String saveRestaurant(
@@ -226,7 +111,6 @@ public class AdminController {
             newRestaurant.setCreatedAt(LocalDateTime.now());
             restaurantRepository.save(newRestaurant);
         } else {
-            // Обновляем существующий ресторан
             Restaurant existingRestaurant = restaurantRepository.findById(restaurant_id)
                     .orElseThrow(() -> new IllegalArgumentException("Invalid restaurant ID"));
 
@@ -239,6 +123,30 @@ public class AdminController {
         return "redirect:/admin/restaurants";
     }
 
+    // Menus
+    @PostMapping("/menus/delete/{id}")
+    public String deleteMenu(@PathVariable Long id, @RequestParam Long restaurantId) {
+        menuService.deleteById(id);
+
+        return "redirect:/admin/restaurants/" + restaurantId + "/menus";
+    }
+
+    // Users
+    @GetMapping("/users")
+    public String getAllUsers(Authentication authentication, Model model) {
+        User currentUser = userService.findByUsername(authentication.getName());
+        List<User> users = userService.getAllUsers();
+        model.addAttribute("currentUserId", currentUser.getId());
+        model.addAttribute("users", users);
+        return "admin/users";
+    }
+
+    @PostMapping("/users/{id}/delete")
+    public String deleteUser(@PathVariable Long id) {
+        userService.deleteUserById(id);
+        return "redirect:/admin/users";
+    }
+
     @PostMapping("/users/add")
     public String addUser(@RequestParam String username,
                           @RequestParam String password,
@@ -246,25 +154,81 @@ public class AdminController {
         User user = new User();
         user.setUsername(username);
         user.setPassword(passwordEncoder.encode(password));
-        user.setRole(User.Role.valueOf(role.toUpperCase())); // Преобразуем строку в enum
+        user.setRole(User.Role.valueOf(role.toUpperCase()));
 
         userService.saveUser(user);
         return "redirect:/admin/users";
     }
 
-    // Метод для отмены заказа
-    @PostMapping("orders/{id}/cancel")
-    public String cancelOrder(@PathVariable Long id) {
-        orderService.updateOrderStatus(id, "CANCELLED");
-        return "redirect:/admin/orders"; // Перенаправление обратно на страницу заказов
+    // Reports
+    @GetMapping("/reports")
+    public String getReportsPage(Model model) {
+        try {
+            List<Order> allOrders = orderService.findAllOrders();
+
+            Map<String, Long> orderStatusCount = allOrders.stream()
+                    .collect(Collectors.groupingBy(order -> order.getStatus().toString(), Collectors.counting()));
+
+            model.addAttribute("orderStatuses", orderStatusCount.keySet());
+            model.addAttribute("orderCountsByStatus", orderStatusCount.values());
+
+            List<Order> deliveredOrders = allOrders.stream()
+                    .filter(order -> order.getStatus() == Order.Status.DELIVERED)
+                    .collect(Collectors.toList());
+
+            Map<String, Long> ordersPerDay = deliveredOrders.stream()
+                    .collect(Collectors.groupingBy(order -> order.getCreatedAt().toLocalDate().toString(), Collectors.counting()));
+
+            model.addAttribute("orderDates", ordersPerDay.keySet());
+            model.addAttribute("ordersByDay", ordersPerDay.values());
+
+            List<Restaurant> restaurants = restaurantRepository.findAll();
+
+            Map<String, Long> orderCountsByRestaurant = restaurants.stream()
+                    .collect(Collectors.toMap(
+                            Restaurant::getName,
+                            restaurant -> deliveredOrders.stream()
+                                    .filter(order -> order.getRestaurant().getId().equals(restaurant.getId()))
+                                    .count()
+                    ));
+
+            Map<String, Double> revenueByRestaurant = restaurants.stream()
+                    .collect(Collectors.toMap(
+                            Restaurant::getName,
+                            restaurant -> deliveredOrders.stream()
+                                    .filter(order -> order.getRestaurant().getId().equals(restaurant.getId()))
+                                    .mapToDouble(order -> order.getTotalAmount().doubleValue())
+                                    .sum()
+                    ));
+
+            model.addAttribute("restaurants", orderCountsByRestaurant.keySet());
+            model.addAttribute("orderCountsByRestaurant", orderCountsByRestaurant.values());
+            model.addAttribute("revenuesByRestaurant", revenueByRestaurant.values());
+
+            Map<String, Long> orderCountsByUser = deliveredOrders.stream()
+                    .collect(Collectors.groupingBy(order -> order.getUser().getUsername(), Collectors.counting()));
+
+            Map<String, Double> userRevenue = deliveredOrders.stream()
+                    .collect(Collectors.groupingBy(
+                            order -> order.getUser().getUsername(),
+                            Collectors.summingDouble(order -> order.getTotalAmount().doubleValue())
+                    ));
+
+            model.addAttribute("users", orderCountsByUser.keySet());
+            model.addAttribute("orderCountsByUser", orderCountsByUser.values());
+            model.addAttribute("userRevenues", userRevenue.values());
+
+            Map<String, Long> ordersByHour = deliveredOrders.stream()
+                    .collect(Collectors.groupingBy(order -> String.valueOf(order.getCreatedAt().getHour()), Collectors.counting()));
+
+            model.addAttribute("orderHours", ordersByHour.keySet());
+            model.addAttribute("ordersByHour", ordersByHour.values());
+
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            e.printStackTrace();
+        }
+
+        return "admin/reports";
     }
-
-    // Метод для завершения заказа
-    @PostMapping("orders/{id}/complete")
-    public String completeOrder(@PathVariable Long id) {
-        orderService.updateOrderStatus(id, "DELIVERED");
-        return "redirect:/admin/orders"; // Перенаправление обратно на страницу заказов
-    }
-
-
 }

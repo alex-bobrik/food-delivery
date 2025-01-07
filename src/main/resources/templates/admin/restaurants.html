@@ -95,13 +95,11 @@
             <td th:text="${restaurant.address}"></td>
             <td th:text="${restaurant.contactInfo}"></td>
             <td>
-                <!-- Кнопка для редактирования -->
                 <button type="button" class="btn btn-warning" data-toggle="modal" data-target="#exampleModal"
                         th:attr="data-id=${restaurant.id}, data-name=${restaurant.name}, data-address=${restaurant.address}, data-contact=${restaurant.contactInfo}">
                     Редактировать
                 </button>
 
-                <!-- Кнопка для перехода на страницу меню -->
                 <a th:href="@{/admin/restaurants/{id}/menus(id=${restaurant.id})}" class="btn btn-info">
                     Посмотреть меню
                 </a>

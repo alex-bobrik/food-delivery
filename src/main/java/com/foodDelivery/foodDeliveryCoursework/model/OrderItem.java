@@ -22,8 +22,6 @@ public class OrderItem {
     private int quantity;
     private BigDecimal price;
 
-    // Getters and Setters
-
     public Long getId() {
         return id;
     }

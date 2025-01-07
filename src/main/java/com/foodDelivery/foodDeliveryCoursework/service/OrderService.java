@@ -30,28 +30,23 @@ public class OrderService {
         return orderRepository.findByUserId(userId);
     }
 
-    // Получаем все заказы, у которых courierId == null
     public List<Order> findOrdersWithNoCourier() {
         return orderRepository.findByCourierIsNull();
     }
 
-    // Найти заказ по ID
     public Order findById(Long orderId) {
         return orderRepository.findById(orderId).orElse(null);
     }
 
-    // Сохранить заказ
     public void save(Order order) {
         orderRepository.save(order);
     }
 
     public List<Order> findNewOrders() {
-        // Найти заказы со статусом NEW и courierId == null
         return orderRepository.findByStatusAndCourierIsNull(Order.Status.NEW);
     }
 
     public List<Order> findOrdersByCourier(Long courierId) {
-        // Найти заказы, назначенные текущему курьеру
         return orderRepository.findByCourierId(courierId);
     }
 
@@ -63,7 +58,6 @@ public class OrderService {
         return orderRepository.findAll();
     }
 
-    // Метод для обновления статуса заказа
     public void updateOrderStatus(Long id, String status) {
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Order not found"));
@@ -73,19 +67,16 @@ public class OrderService {
 
     @Transactional
     public void detachCourierFromOrders(Long courierId) {
-        // Устанавливаем COURIER_ID = null для заказов, связанных с курьером
         orderRepository.updateCourierIdToNull(courierId);
     }
 
     @Transactional
     public void detachClientFromOrders(Long clientId) {
-        // Устанавливаем USER_ID = null для заказов, связанных с клиентом
         orderRepository.updateClientIdToNull(clientId);
     }
 
     @Transactional
     public void detachRestaurantFromOrders(Long restaurantId) {
-        // Устанавливаем RESTAURANT_ID = null для заказов, связанных с рестораном
         orderRepository.updateRestaurantIdToNull(restaurantId);
     }
 

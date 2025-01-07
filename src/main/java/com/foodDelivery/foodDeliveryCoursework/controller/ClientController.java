@@ -37,7 +37,6 @@ public class ClientController {
     @Autowired
     private OrderService orderService;
 
-    // Отображение страницы меню
     @GetMapping("/menus")
     public String getAllMenus(Model model) {
         model.addAttribute("menus", menuRepository.findAll());
@@ -52,7 +51,6 @@ public class ClientController {
         return "client/orders";
     }
 
-    // Отображение страницы заказа
     @GetMapping("/order")
     public String getOrderPage(@RequestParam("menuId") Long menuId, Model model) {
         Menu menu = menuRepository.findById(menuId)
@@ -62,7 +60,6 @@ public class ClientController {
         return "client/order";
     }
 
-    // Подтверждение заказа
     @PostMapping("/order/confirm")
     public String confirmOrder(@RequestParam("menuId") Long menuId,
                                @RequestParam("quantity") int quantity) {
@@ -73,24 +70,22 @@ public class ClientController {
         Menu menu = menuRepository.findById(menuId)
                 .orElseThrow(() -> new IllegalArgumentException("Меню с ID " + menuId + " не найдено"));
 
-        User currentUser = userService.getCurrentUser(); // Получение текущего пользователя
+        User currentUser = userService.getCurrentUser();
 
-        // Создаем заказ
         Order order = new Order();
         order.setUser(currentUser);
         order.setRestaurant(menu.getRestaurant());
         order.setStatus(Order.Status.NEW);
-        order.setTotalAmount(menu.getPrice().multiply(BigDecimal.valueOf(quantity))); // Итоговая цена
+        order.setTotalAmount(menu.getPrice().multiply(BigDecimal.valueOf(quantity)));
         order.setCreatedAt(LocalDateTime.now());
         order.setUpdatedAt(LocalDateTime.now());
         order = orderRepository.save(order);
 
-        // Создаем элемент заказа
         OrderItem orderItem = new OrderItem();
         orderItem.setOrder(order);
         orderItem.setMenuItem(menu);
-        orderItem.setQuantity(quantity); // Установить выбранное количество
-        orderItem.setPrice(menu.getPrice()); // Цена за единицу
+        orderItem.setQuantity(quantity);
+        orderItem.setPrice(menu.getPrice());
         orderItemRepository.save(orderItem);
 
         return "redirect:/client/orders";

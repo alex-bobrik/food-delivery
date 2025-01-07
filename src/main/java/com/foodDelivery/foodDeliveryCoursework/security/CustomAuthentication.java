@@ -16,22 +16,22 @@ public class CustomAuthentication implements Authentication {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return null; // Верните роли, если они есть
+        return null;
     }
 
     @Override
     public Object getCredentials() {
-        return null; // Возвращайте данные аутентификации, если нужно
+        return null;
     }
 
     @Override
     public Object getDetails() {
-        return null; // Дополнительные данные
+        return null;
     }
 
     @Override
     public Object getPrincipal() {
-        return username; // Это будет использоваться для идентификации пользователя
+        return username;
     }
 
     @Override

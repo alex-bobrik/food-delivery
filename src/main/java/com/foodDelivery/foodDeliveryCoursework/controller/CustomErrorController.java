@@ -11,20 +11,19 @@ public class CustomErrorController implements ErrorController {
 
     @GetMapping("/error")
     public String handleError(HttpServletRequest request) {
-        // Получение статуса ошибки
         Object status = request.getAttribute("jakarta.servlet.error.status_code");
 
         if (status != null) {
             int statusCode = Integer.parseInt(status.toString());
 
             if (statusCode == 404) {
-                return "error/404"; // Путь к шаблону 404
+                return "error/404";
             } else if (statusCode == 403) {
-                return "error/403"; // Путь к шаблону 403
+                return "error/403";
             }
         }
 
-        return "error/default"; // Шаблон для других ошибок
+        return "error/default";
     }
 }
 

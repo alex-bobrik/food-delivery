@@ -39,8 +39,6 @@ public class Order {
         NEW, IN_PROGRESS, DELIVERED, CANCELLED
     }
 
-    // Getters and Setters
-
     public Long getId() {
         return id;
     }

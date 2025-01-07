@@ -1,13 +1,11 @@
 package com.foodDelivery.foodDeliveryCoursework.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.foodDelivery.foodDeliveryCoursework.model.Order;
 import com.foodDelivery.foodDeliveryCoursework.model.User;
 import com.foodDelivery.foodDeliveryCoursework.service.OrderService;
 import com.foodDelivery.foodDeliveryCoursework.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -32,7 +30,6 @@ public class CourierController {
 
     @GetMapping("/new-orders")
     public String newOrdersPage(Model model) {
-        // Получаем заказы со статусом NEW, где courierId == null
         List<Order> orders = orderService.findNewOrders();
         model.addAttribute("orders", orders);
         return "courier/new-orders";
@@ -41,7 +38,6 @@ public class CourierController {
     @GetMapping("/orders")
     public String assignedOrdersPage(Model model) {
         User courier = this.userService.getCurrentUser();
-        // Получаем заказы, заассайненные на текущего курьера
         List<Order> orders = orderService.findOrdersByCourier(courier.getId());
         model.addAttribute("orders", orders);
         return "courier/assigned-orders";
@@ -75,24 +71,17 @@ public class CourierController {
     @GetMapping("/reports")
     public String courierReportsPage(Model model) throws JsonProcessingException {
         User courier = this.userService.getCurrentUser();
-        // Получаем только доставленные заказы текущего курьера
         List<Order> deliveredOrders = orderService.findOrdersByCourierAndStatus(courier.getId(), Order.Status.DELIVERED);
 
-        // Группируем заказы по дате
         Map<String, Long> ordersByDate = deliveredOrders.stream()
                 .collect(Collectors.groupingBy(
-                        order -> order.getUpdatedAt().toLocalDate().toString(), // Это уже строка "yyyy-MM-dd"
+                        order -> order.getUpdatedAt().toLocalDate().toString(),
                         Collectors.counting()
                 ));
 
-        // Передаем даты и количество заказов в представление
         model.addAttribute("dates", ordersByDate.keySet());
         model.addAttribute("orderCounts", ordersByDate.values());
 
-        System.out.println("ORDERS KEYS");
-        System.out.println(ordersByDate.keySet());
-        System.out.println("ORDERS KEYS");
-        System.out.println(ordersByDate.values());
         return "courier/reports";
     }
 }

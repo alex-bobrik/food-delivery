@@ -28,10 +28,9 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.csrf(csrf -> csrf
-                        .ignoringRequestMatchers("/h2-console/**") // Отключаем CSRF для H2 Console
+                        .ignoringRequestMatchers("/h2-console/**")
                 )
                 .authorizeHttpRequests(auth -> auth
-                        // Доступ для всех к перечисленным URL
                         .requestMatchers(
                                 "/h2-console/**",
                                 "/auth/login",
@@ -40,27 +39,25 @@ public class SecurityConfig {
                                 "/js/**",
                                 "/uploads/*"
                         ).permitAll()
-                        // Разграничение ролей
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers("/restaurant/**").hasRole("RESTAURANT")
                         .requestMatchers("/client/**").hasRole("CLIENT")
                         .requestMatchers("/courier/**").hasRole("COURIER")
-                        // Все остальные запросы требуют аутентификации
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form
-                        .loginPage("/auth/login") // Страница логина
+                        .loginPage("/auth/login")
                         .loginProcessingUrl("/auth/login")
-                        .successHandler(new CustomAuthenticationSuccessHandler()) // Кастомная логика успешного логина
+                        .successHandler(new CustomAuthenticationSuccessHandler())
                         .failureUrl("/auth/login?error=true")
                 )
                 .logout(logout -> logout
-                        .logoutUrl("/auth/logout") // URL для выхода
-                        .logoutSuccessUrl("/auth/login?logout") // Перенаправление после выхода
+                        .logoutUrl("/auth/logout")
+                        .logoutSuccessUrl("/auth/login?logout")
                         .permitAll()
                 )
                 .headers(headers -> headers
-                        .frameOptions().sameOrigin() // Разрешаем использование iframe с той же страницы
+                        .frameOptions().sameOrigin()
                 );
 
         return http.build();

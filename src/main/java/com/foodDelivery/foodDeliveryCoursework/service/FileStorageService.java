@@ -16,22 +16,18 @@ public class FileStorageService {
 
     public String saveFile(MultipartFile file) {
         try {
-            // Создаем уникальное имя файла
             String filename = UUID.randomUUID() + "_" + file.getOriginalFilename();
             String filePath = UPLOAD_DIR + filename;
 
-            // Создаем папку, если ее нет
             File uploadDir = new File(UPLOAD_DIR);
             if (!uploadDir.exists()) {
                 uploadDir.mkdirs();
             }
 
-            // Сохраняем файл
             Files.copy(file.getInputStream(), Paths.get(filePath));
 
             return filePath;
         } catch (IOException e) {
-            System.out.println("CANNOT UPLOAD FILE");
             throw new RuntimeException("Failed to save file", e);
         }
     }

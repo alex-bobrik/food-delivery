@@ -21,7 +21,6 @@ public class Menu {
 
     private String imageUrl;
 
-    // Getters and Setters
 
     public Long getId() {
         return id;

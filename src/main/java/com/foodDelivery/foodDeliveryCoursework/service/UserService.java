@@ -19,7 +19,7 @@ import java.util.List;
 public class UserService {
 
     private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder; // Автоматически внедряется бин
+    private final PasswordEncoder passwordEncoder;
 
     private static final Logger logger = LoggerFactory.getLogger(UserService.class);
 
@@ -50,7 +50,6 @@ public class UserService {
     }
 
     public void registerUser(String email, String username, String password) {
-        // Проверяем, существует ли уже пользователь с таким именем
         if (userRepository.findByUsername(username) != null) {
             logger.error("User with username '{}' already exists!", username);
             throw new RuntimeException("User already exists");
@@ -59,18 +58,15 @@ public class UserService {
         System.out.println("Registering new user with username: " + username);
 
         try {
-            // Хэшируем пароль
             String encodedPassword = passwordEncoder.encode(password);
 
-            // Создаем нового пользователя с ролью ROLE_CLIENT
             User user = new User();
             user.setUsername(username);
             user.setPassword(encodedPassword);
             user.setRole(Role.CLIENT);
-            user.setEmail(email);  // Возможно, стоит заменить на фактическую информацию
+            user.setEmail(email);
             user.setCreatedAt(LocalDateTime.now());
 
-            // Сохраняем пользователя в базе данных
             userRepository.save(user);
 
             System.out.println("User with username "+username+" and pass "+password+" successfully registered.");
@@ -109,37 +105,26 @@ public class UserService {
     }
 
     public void deleteUserById(Long id) {
-        // Получаем пользователя или выбрасываем исключение, если он не найден
         User user = userRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("User not found"));
 
-        // Если роль пользователя - RESTAURANT
         if (user.getRole() == Role.RESTAURANT) {
-            // Получаем ресторан, связанный с этим пользователем
             Restaurant restaurant = restaurantService.findById(user.getId());
 
-            // Удаляем все меню, которое относится к ресторану
             menuService.deleteByRestaurantId(restaurant.getId());
 
-            // Для заказов, связанных с этим рестораном, ставим RESTAURANT_ID = null
             orderService.detachRestaurantFromOrders(restaurant.getId());
 
-            // Удаляем сам ресторан
             restaurantService.delete(restaurant);
         }
 
-        // Если роль пользователя - COURIER
         else if (user.getRole() == Role.COURIER) {
-            // Для заказов, связанных с этим курьером, ставим COURIER_ID = null
             orderService.detachCourierFromOrders(user.getId());
         }
 
-        // Если роль пользователя - CLIENT
         else if (user.getRole() == Role.CLIENT) {
-            // Для заказов, связанных с этим клиентом, ставим USER_ID = null
             orderService.detachClientFromOrders(user.getId());
         }
 
-        // Удаляем пользователя
         userRepository.deleteById(id);
     }
 

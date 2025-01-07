@@ -18,14 +18,12 @@ public class AuthService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    // Аутентификация пользователя
     public boolean authenticate(String username, String password) {
         User user = userRepository.findByUsername(username);
 
-        // Проверяем, существует ли пользователь и правильно ли введен пароль
         if (user != null && passwordEncoder.matches(password, user.getPassword())) {
-            return true;  // Успешная аутентификация
+            return true;
         }
-        return false;  // Неудачная аутентификация
+        return false;
     }
 }
