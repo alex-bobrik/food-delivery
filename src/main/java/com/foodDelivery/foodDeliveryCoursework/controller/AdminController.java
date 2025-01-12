@@ -16,6 +16,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -57,7 +58,7 @@ public class AdminController {
 
     @PostMapping("orders/{id}/cancel")
     public String cancelOrder(@PathVariable Long id) {
-        orderService.updateOrderStatus(id, "CANCELLED");
+        orderService.updateOrderStatus(id, Order.Status.CANCELLED.toString());
         return "redirect:/admin/orders";
     }
 
@@ -89,35 +90,41 @@ public class AdminController {
             @RequestParam String restaurant_address,
             @RequestParam String restaurant_contact,
             @RequestParam(required = false) String username,
-            @RequestParam(required = false) String password
+            @RequestParam(required = false) String password,
+            RedirectAttributes redirectAttributes
     ) {
-        if (restaurant_id == null) {
+        try {
+            if (restaurant_id == null) {
 
-            if (userRepository.findByUsername(username) != null) {
-                throw new RuntimeException("User already exists");
+                if (userRepository.findByUsername(username) != null) {
+                    throw new RuntimeException("User already exists");
+                }
+
+                User newUser = new User();
+                newUser.setUsername(username);
+                newUser.setPassword(passwordEncoder.encode(password));
+                newUser.setRole(User.Role.RESTAURANT);
+                userService.saveUser(newUser);
+
+                Restaurant newRestaurant = new Restaurant();
+                newRestaurant.setId(newUser.getId());
+                newRestaurant.setName(restaurant_name);
+                newRestaurant.setAddress(restaurant_address);
+                newRestaurant.setContactInfo(restaurant_contact);
+                newRestaurant.setCreatedAt(LocalDateTime.now());
+                restaurantRepository.save(newRestaurant);
+            } else {
+                Restaurant existingRestaurant = restaurantRepository.findById(restaurant_id)
+                        .orElseThrow(() -> new IllegalArgumentException("Invalid restaurant ID"));
+
+                existingRestaurant.setName(restaurant_name);
+                existingRestaurant.setAddress(restaurant_address);
+                existingRestaurant.setContactInfo(restaurant_contact);
+                restaurantRepository.save(existingRestaurant);
             }
-
-            User newUser = new User();
-            newUser.setUsername(username);
-            newUser.setPassword(passwordEncoder.encode(password));
-            newUser.setRole(User.Role.RESTAURANT);
-            userService.saveUser(newUser);
-
-            Restaurant newRestaurant = new Restaurant();
-            newRestaurant.setId(newUser.getId());
-            newRestaurant.setName(restaurant_name);
-            newRestaurant.setAddress(restaurant_address);
-            newRestaurant.setContactInfo(restaurant_contact);
-            newRestaurant.setCreatedAt(LocalDateTime.now());
-            restaurantRepository.save(newRestaurant);
-        } else {
-            Restaurant existingRestaurant = restaurantRepository.findById(restaurant_id)
-                    .orElseThrow(() -> new IllegalArgumentException("Invalid restaurant ID"));
-
-            existingRestaurant.setName(restaurant_name);
-            existingRestaurant.setAddress(restaurant_address);
-            existingRestaurant.setContactInfo(restaurant_contact);
-            restaurantRepository.save(existingRestaurant);
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+            return "redirect:/error";
         }
 
         return "redirect:/admin/restaurants";

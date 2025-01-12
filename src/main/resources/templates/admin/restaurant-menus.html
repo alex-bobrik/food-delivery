@@ -74,8 +74,10 @@
         <tr>
             <th>Изображение</th>
             <th>Название блюда</th>
+            <th>Категория</th>
             <th>Описание</th>
             <th>Цена, BYN</th>
+            <th>Количество</th>
             <th>Действия</th>
         </tr>
         </thead>
@@ -85,8 +87,10 @@
                 <img th:src="'/' + ${menu.imageUrl}" alt="Menu Image" style="width: 150px; height: 150px;" />
             </td>
             <td th:text="${menu.name}"></td>
+            <td th:text="${menu.category}"></td>
             <td th:text="${menu.description}"></td>
             <td th:text="${menu.price}"></td>
+            <td th:text="${menu.quantity ?: 0}"></td>
             <td>
                 <form th:action="@{/admin/menus/delete/{id}(id=${menu.id})}" method="post" style="display:inline;">
                     <input type="hidden" name="restaurantId" th:value="${menu.restaurant.id}" />

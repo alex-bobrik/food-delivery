@@ -65,23 +65,28 @@
         <tr>
             <th>Изображение</th>
             <th>Название</th>
+            <th>Категория</th>
             <th>Описание</th>
             <th>Цена, BYN</th>
+            <th>Количество</th>
             <th>Ресторан</th>
             <th>Действие</th>
         </tr>
         </thead>
         <tbody>
-        <tr th:each="menu : ${menus}">
+        <tr th:each="menu : ${menus}" th:classappend="${menu.quantity == 0 ? 'out-of-stock' : ''}">
             <td>
                 <img th:src="'/' + ${menu.imageUrl}" alt="Menu Image" style="width: 150px; height: 150px;" />
             </td>
             <td th:text="${menu.name}"></td>
+            <td th:text="${menu.category}"></td>
             <td th:text="${menu.description}"></td>
             <td th:text="${menu.price}"></td>
+            <td th:text="${menu.quantity}"></td>
             <td th:text="${menu.restaurant.name}"></td>
             <td>
-                <a th:href="@{/client/order(menuId=${menu.id})}" class="btn btn-success">
+                <a th:href="@{/client/order(menuId=${menu.id})}" class="btn btn-success"
+                   th:classappend="${menu.quantity == 0 ? 'disabled' : ''}" th:attr="disabled=${menu.quantity == 0 ? 'true' : null}">
                     Заказать
                 </a>
             </td>
@@ -102,16 +107,16 @@
 <script src="https://cdn.datatables.net/1.10.22/js/jquery.dataTables.min.js"></script>
 <script src="https://cdn.datatables.net/1.10.22/js/dataTables.bootstrap4.min.js"></script>
 
-<script>
+<script th:inline="javascript">
     $(document).ready(function () {
-        $('#clientMenusTable').DataTable({
+        const table = $('#clientMenusTable').DataTable({
             "aaSorting": [],
             paging: true,
             scrollCollapse: true,
             scrollY: '500px',
             columnDefs: [{
                 orderable: false,
-                targets: [0,5],
+                targets: [0, 5, 6],
             }]
         });
     });

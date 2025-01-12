@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -44,13 +45,18 @@ public class CourierController {
     }
 
     @PostMapping("/assign/{orderId}")
-    public String assignOrder(@PathVariable Long orderId) {
-        Order order = orderService.findById(orderId);
-        if (order != null && order.getCourier() == null) {
-            User courier = this.userService.getCurrentUser();
-            order.setCourier(courier);
-            order.setStatus(Order.Status.IN_PROGRESS);
-            orderService.save(order);
+    public String assignOrder(@PathVariable Long orderId, RedirectAttributes redirectAttributes) {
+        try {
+            Order order = orderService.findById(orderId);
+            if (order != null && order.getCourier() == null) {
+                User courier = this.userService.getCurrentUser();
+                order.setCourier(courier);
+                order.setStatus(Order.Status.IN_PROGRESS);
+                orderService.save(order);
+            }
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+            return "redirect:/error";
         }
         return "redirect:/courier/orders";
     }

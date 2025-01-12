@@ -68,9 +68,6 @@ public class UserService {
             user.setCreatedAt(LocalDateTime.now());
 
             userRepository.save(user);
-
-            System.out.println("User with username "+username+" and pass "+password+" successfully registered.");
-
         } catch (Exception exception) {
             logger.error("Error while registering user: {}", exception.getMessage());
             throw new RuntimeException("Registration failed: " + exception.getMessage());

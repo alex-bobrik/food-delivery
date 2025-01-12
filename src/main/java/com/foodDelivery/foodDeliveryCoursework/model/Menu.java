@@ -18,8 +18,9 @@ public class Menu {
     private String name;
     private String description;
     private BigDecimal price;
-
     private String imageUrl;
+    private int quantity;
+    private String category;
 
 
     public Long getId() {
@@ -68,6 +69,22 @@ public class Menu {
 
     public void setImageUrl(String imageUrl) {
         this.imageUrl = imageUrl;
+    }
+
+    public int getQuantity() {
+        return quantity;
+    }
+
+    public void setQuantity(int quantity) {
+        this.quantity = quantity;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
     }
 }
 

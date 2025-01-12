@@ -7,7 +7,7 @@
 <body>
 <div class="container text-center">
     <h1>Что-то пошло не так</h1>
-    <p>Извините, произошла ошибка. Пожалуйста, попробуйте позже.</p>
+    <p th:text="${errorMessage != null ? errorMessage : 'Извините, произошла ошибка. Пожалуйста, попробуйте позже.'}"></p>
     <a href="/auth/login" class="btn btn-primary">Вернуться</a>
 </div>
 </body>

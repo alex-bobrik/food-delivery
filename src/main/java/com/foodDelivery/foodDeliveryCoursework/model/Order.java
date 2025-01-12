@@ -32,6 +32,8 @@ public class Order {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
+    private String deliveryAddress;
+
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<OrderItem> orderItems;
 
@@ -109,5 +111,19 @@ public class Order {
 
     public void setCourier(User courier) {
         this.courier = courier;
+    }
+
+    public String getDeliveryAddress() {
+        return deliveryAddress;
+    }
+
+    public void setDeliveryAddress(String deliveryAddress) {
+        this.deliveryAddress = deliveryAddress;
+    }
+
+    public int getQuantity() {
+        return orderItems.stream()
+                .mapToInt(OrderItem::getQuantity)
+                .sum();
     }
 }

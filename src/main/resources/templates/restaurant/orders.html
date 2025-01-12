@@ -59,6 +59,7 @@
             <th>Ресторан</th>
             <th>Статус</th>
             <th>Сумма, BYN</th>
+            <th>Количество</th>
         </tr>
         </thead>
         <tbody>
@@ -67,8 +68,17 @@
             <td th:text="${#temporals.format(order.createdAt, 'dd-MM-yyyy HH:mm')}"></td>
             <td th:text="${order.user.username}"></td>
             <td th:text="${order.restaurant?.name ?: '-'}"></td>
-            <td th:text="${order.status}"></td>
+            <td>
+                <span th:text="${order.status}"
+                      th:classappend="' badge ' +
+                                       ${order.status.toString() == 'NEW' ? 'badge-info' : ''} +
+                                       ${order.status.toString() == 'IN_PROGRESS' ? 'badge-warning' : ''} +
+                                       ${order.status.toString() == 'DELIVERED' ? 'badge-success' : ''} +
+                                       ${order.status.toString() == 'CANCELLED' ? 'badge-danger' : ''}">
+                </span>
+            </td>
             <td th:text="${order.totalAmount}"></td>
+            <td th:text="${order.quantity}"></td>
         </tr>
         </tbody>
     </table>

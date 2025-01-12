@@ -59,6 +59,7 @@
       <th>Ресторан</th>
       <th>Статус</th>
       <th>Итоговая цена, BYN</th>
+      <th>Адрес доставки</th>
       <th>Действия</th>
     </tr>
     </thead>
@@ -67,8 +68,18 @@
       <td th:text="${order.id}"></td>
       <td th:text="${#temporals.format(order.createdAt, 'dd-MM-yyyy HH:mm')}"></td>
       <td th:text="${order.restaurant?.name ?: '-'}"></td>
-      <td th:text="${order.status}"></td>
+      <td>
+        <span th:text="${order.status}"
+              th:classappend="' badge ' +
+                               ${order.status.toString() == 'NEW' ? 'badge-info' : ''} +
+                               ${order.status.toString() == 'IN_PROGRESS' ? 'badge-warning' : ''} +
+                               ${order.status.toString() == 'DELIVERED' ? 'badge-success' : ''} +
+                               ${order.status.toString() == 'CANCELLED' ? 'badge-danger' : ''}">
+        </span>
+      </td>
       <td th:text="${order.totalAmount}"></td>
+      <td th:text="${order.quantity ?: '-'}"></td>
+      <td th:text="${order.deliveryAddress ?: '-'}"></td>
       <td>
         <form th:action="@{/courier/assign/{orderId}(orderId=${order.id})}" method="post">
           <button type="submit" class="btn btn-success btn-sm"
@@ -98,7 +109,7 @@
             scrollY: '500px',
             columnDefs: [{
                 orderable: false,
-                targets: [5],
+                targets: [7],
             }]
         });
     });

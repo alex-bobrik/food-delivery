@@ -67,6 +67,7 @@
       <th>Ресторан</th>
       <th>Статус</th>
       <th>Итоговая цена, BYN</th>
+      <th>Адрес доставки</th>
       <th>Блюда</th>
     </tr>
     </thead>
@@ -74,8 +75,17 @@
     <tr th:each="order : ${orders}">
       <td th:text="${#temporals.format(order.createdAt, 'dd-MM-yyyy HH:mm')}"></td>
       <td th:text="${order.restaurant?.name ?: '-'}"></td>
-      <td th:text="${order.status}"></td>
+      <td>
+        <span th:text="${order.status}"
+              th:classappend="' badge ' +
+                               ${order.status.toString() == 'NEW' ? 'badge-info' : ''} +
+                               ${order.status.toString() == 'IN_PROGRESS' ? 'badge-warning' : ''} +
+                               ${order.status.toString() == 'DELIVERED' ? 'badge-success' : ''} +
+                               ${order.status.toString() == 'CANCELLED' ? 'badge-danger' : ''}">
+        </span>
+      </td>
       <td th:text="${order.totalAmount}"></td>
+      <td th:text="${order.deliveryAddress ?: '-'}"></td>
       <td>
         <ul>
           <li th:each="item : ${order.orderItems}">
@@ -111,7 +121,7 @@
             scrollY: '500px',
             columnDefs: [{
                 orderable: false,
-                targets: [4],
+                targets: [5],
             }]
         });
     });
